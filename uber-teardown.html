@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Uber India Teardown — Shailesh Bhardwaj</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d0d0b;
+    --surface: #151513;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0ede6;
+    --text-soft: rgba(240,237,230,0.58);
+    --text-muted: rgba(240,237,230,0.28);
+    --accent: #e8c547;
+    --accent-dim: rgba(232,197,71,0.09);
+    --green: #3ecf8e;
+    --green-dim: rgba(62,207,142,0.09);
+    --red: #e85d4a;
+    --red-dim: rgba(232,93,74,0.09);
+    --blue: #5b9cf6;
+    --blue-dim: rgba(91,156,246,0.09);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.09);
+    --orange: #f97316;
+    --orange-dim: rgba(249,115,22,0.09);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.032'/%3E%3C/svg%3E"); pointer-events: none; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1rem 2.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(13,13,11,0.9); backdrop-filter: blur(18px); border-bottom: 0.5px solid var(--border); }
+  .nav-back { font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--accent); }
+  .nav-label { font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+
+  .page { position: relative; z-index: 1; }
+  .hero { max-width: 960px; margin: 0 auto; padding: 9rem 2.5rem 4rem; border-bottom: 0.5px solid var(--border); }
+  .hero-meta { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .tag { font-family: 'Syne', sans-serif; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.28rem 0.7rem; border-radius: 2px; }
+  .tag-td { background: var(--accent-dim); color: var(--accent); }
+  .tag-in { background: var(--orange-dim); color: var(--orange); }
+  .tag-pm { background: var(--blue-dim); color: var(--blue); }
+  .tag-date { font-size: 0.72rem; color: var(--text-muted); margin-left: auto; }
+  h1.hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(2.6rem, 5.5vw, 4.4rem); line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 1.25rem; }
+  h1.hero-title em { font-style: italic; color: var(--accent); }
+  .hero-sub { font-size: 1.05rem; color: var(--text-soft); max-width: 640px; line-height: 1.85; margin-bottom: 2.5rem; }
+  .hero-stats { display: inline-flex; gap: 0; border: 0.5px solid var(--border); flex-wrap: wrap; }
+  .h-stat { padding: 1rem 1.5rem; border-right: 0.5px solid var(--border); text-align: center; }
+  .h-stat:last-child { border-right: none; }
+  .h-stat-num { font-family: 'Instrument Serif', serif; font-size: 1.8rem; color: var(--accent); display: block; line-height: 1; }
+  .h-stat-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.3rem; letter-spacing: 0.03em; max-width: 130px; line-height: 1.3; }
+
+  .content { max-width: 960px; margin: 0 auto; }
+  .canvas-section { padding: 4rem 2.5rem; border-bottom: 0.5px solid var(--border); }
+  .cs-header { margin-bottom: 2.5rem; }
+  .cs-num { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 4rem; color: var(--border); line-height: 1; margin-bottom: 0.5rem; }
+  .cs-eyebrow { font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+  .cs-title { font-family: 'Instrument Serif', serif; font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.2; letter-spacing: -0.02em; }
+  .prose { font-size: 0.95rem; color: var(--text-soft); line-height: 1.85; max-width: 720px; }
+  .prose p + p { margin-top: 1rem; }
+  .prose strong { color: var(--text); font-weight: 500; }
+
+  .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 0.5px solid var(--border); margin-top: 2rem; }
+  .insight-card { padding: 1.75rem; border-right: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+  .insight-card:nth-child(2n) { border-right: none; }
+  .insight-card:nth-last-child(-n+2) { border-bottom: none; }
+  .insight-card.full { grid-column: 1 / -1; border-right: none; }
+  .ic-label { font-family: 'Syne', sans-serif; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem; }
+  .ic-title { font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; line-height: 1.4; }
+  .ic-body { font-size: 0.82rem; color: var(--text-soft); line-height: 1.65; }
+
+  .data-callout { margin-top: 1.75rem; background: var(--surface); border-left: 2px solid var(--accent); padding: 1.25rem 1.5rem; }
+  .data-callout.red { border-left-color: var(--red); }
+  .data-callout.green { border-left-color: var(--green); }
+  .data-callout.blue { border-left-color: var(--blue); }
+  .dc-label { font-family: 'Syne', sans-serif; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; }
+  .data-callout.red .dc-label { color: var(--red); }
+  .data-callout.green .dc-label { color: var(--green); }
+  .data-callout.blue .dc-label { color: var(--blue); }
+  .dc-body { font-size: 0.85rem; color: var(--text-soft); line-height: 1.7; }
+  .dc-body strong { color: var(--text); font-weight: 500; }
+
+  .quote-block { margin-top: 1.75rem; background: var(--surface); border: 0.5px solid var(--border); padding: 1.5rem; }
+  .quote-text { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 1.05rem; color: var(--text); line-height: 1.6; margin-bottom: 0.5rem; }
+  .quote-source { font-size: 0.72rem; color: var(--text-muted); font-family: 'Syne', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .opportunity-box { margin-top: 2rem; background: var(--surface); border: 0.5px solid var(--border); border-top: 2px solid var(--blue); padding: 2rem; }
+  .ob-label { font-family: 'Syne', sans-serif; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin-bottom: 1rem; }
+  .ob-text { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: var(--text); line-height: 1.65; }
+
+  .hypothesis { margin-top: 2rem; }
+  .hyp-layer { display: grid; grid-template-columns: 140px 1fr; border: 0.5px solid var(--border); border-bottom: none; }
+  .hyp-layer:last-child { border-bottom: 0.5px solid var(--border); }
+  .hyp-label-col { padding: 1.25rem; border-right: 0.5px solid var(--border); display: flex; align-items: flex-start; }
+  .hyp-badge { font-family: 'Syne', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.6rem; border-radius: 2px; }
+  .hyp-outcome .hyp-badge { background: var(--green-dim); color: var(--green); }
+  .hyp-problem .hyp-badge { background: var(--red-dim); color: var(--red); }
+  .hyp-solution .hyp-badge { background: var(--purple-dim); color: var(--purple); }
+  .hyp-content { padding: 1.25rem 1.5rem; font-size: 0.88rem; color: var(--text-soft); line-height: 1.7; }
+  .hyp-content strong { color: var(--text); font-weight: 500; }
+
+  .assumptions { margin-top: 2rem; }
+  .assumption-row { display: flex; align-items: flex-start; gap: 1rem; padding: 1.1rem 0; border-bottom: 0.5px solid var(--border); }
+  .assumption-row:first-child { border-top: 0.5px solid var(--border); }
+  .ar-num { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 1.4rem; color: var(--border); min-width: 28px; line-height: 1.2; padding-top: 2px; }
+  .ar-content { flex: 1; }
+  .ar-title { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+  .ar-body { font-size: 0.8rem; color: var(--text-soft); line-height: 1.6; }
+  .ar-risk { font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 2px; white-space: nowrap; margin-top: 4px; display: inline-block; }
+  .risk-killer { background: var(--red-dim); color: var(--red); }
+  .risk-high { background: var(--accent-dim); color: var(--accent); }
+  .risk-medium { background: var(--blue-dim); color: var(--blue); }
+
+  .skateboard-grid { margin-top: 2rem; border: 0.5px solid var(--border); }
+  .sb-card { padding: 1.75rem; border-bottom: 0.5px solid var(--border); }
+  .sb-card:last-child { border-bottom: none; }
+  .sb-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+  .sb-title { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+  .sb-badge { font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 2px; white-space: nowrap; }
+  .sb-recommended { background: var(--green-dim); color: var(--green); }
+  .sb-alt { background: var(--border); color: var(--text-muted); }
+  .sb-body { font-size: 0.82rem; color: var(--text-soft); line-height: 1.65; }
+  .sb-who { margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-muted); font-family: 'Syne', sans-serif; letter-spacing: 0.04em; }
+  .sb-who strong { color: var(--text-soft); font-weight: 400; }
+
+  .moat-table { margin-top: 2rem; border: 0.5px solid var(--border); width: 100%; }
+  .mt-row { display: grid; grid-template-columns: 180px 1fr 100px; border-bottom: 0.5px solid var(--border); }
+  .mt-row:last-child { border-bottom: none; }
+  .mt-row.header { background: var(--surface); }
+  .mt-cell { padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--text-soft); }
+  .mt-row.header .mt-cell { font-family: 'Syne', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .mt-cell:nth-child(1) { color: var(--text); }
+  .mt-cell:nth-child(2) { border-left: 0.5px solid var(--border); border-right: 0.5px solid var(--border); }
+  .strength-strong { color: var(--green); font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 700; }
+  .strength-weak { color: var(--red); font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 700; }
+  .strength-med { color: var(--accent); font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  .verdict-block { margin-top: 2rem; background: var(--surface); border: 0.5px solid var(--border); padding: 2rem; }
+  .vb-label { font-family: 'Syne', sans-serif; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); margin-bottom: 1rem; }
+  .vb-title { font-family: 'Instrument Serif', serif; font-size: 1.4rem; color: var(--text); margin-bottom: 0.75rem; line-height: 1.3; }
+  .vb-body { font-size: 0.88rem; color: var(--text-soft); line-height: 1.8; }
+  .vb-body p + p { margin-top: 0.75rem; }
+  .vb-body strong { color: var(--text); font-weight: 500; }
+
+  .context-banner { background: var(--orange-dim); border: 0.5px solid rgba(249,115,22,0.2); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start; }
+  .cb-icon { font-size: 1.2rem; }
+  .cb-text { font-size: 0.85rem; color: var(--text-soft); line-height: 1.7; }
+  .cb-text strong { color: var(--text); font-weight: 500; }
+
+  .closing { padding: 4rem 2.5rem 6rem; border-top: 0.5px solid var(--border); max-width: 960px; margin: 0 auto; }
+  .closing-title { font-family: 'Instrument Serif', serif; font-size: clamp(1.4rem, 2.5vw, 1.9rem); margin-bottom: 1rem; line-height: 1.3; }
+  .closing-body { font-size: 0.9rem; color: var(--text-soft); line-height: 1.8; max-width: 640px; }
+  .closing-body p + p { margin-top: 0.75rem; }
+
+  .footer-bar { border-top: 0.5px solid var(--border); padding: 1.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; max-width: 960px; margin: 0 auto; }
+  .footer-bar p { font-size: 0.72rem; color: var(--text-muted); }
+  .footer-bar a { color: var(--accent); text-decoration: none; }
+
+  .fade-up { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 720px) {
+    .insight-grid { grid-template-columns: 1fr; }
+    .insight-card { border-right: none; }
+    .insight-card:nth-last-child(-n+2) { border-bottom: 0.5px solid var(--border); }
+    .insight-card:last-child { border-bottom: none; }
+    .hyp-layer { grid-template-columns: 1fr; }
+    .hyp-label-col { border-right: none; border-bottom: 0.5px solid var(--border); }
+    .mt-row { grid-template-columns: 1fr; }
+    .mt-cell:nth-child(2) { border-left: none; border-right: none; border-top: 0.5px solid var(--border); }
+    .hero-stats { flex-direction: column; width: 100%; }
+    .h-stat { border-right: none; border-bottom: 0.5px solid var(--border); }
+    nav { padding: 1rem 1.25rem; }
+    .canvas-section, .hero, .closing, .footer-bar { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-back" href="index.html">← Back to portfolio</a>
+  <span class="nav-label">Product Teardown · Uber India</span>
+</nav>
+
+<div class="page">
+<div class="hero">
+  <div class="hero-meta">
+    <span class="tag tag-td">Product teardown</span>
+    <span class="tag tag-in">India context</span>
+    <span class="tag tag-pm">PM problem framing</span>
+    <span class="tag-date">April 2026</span>
+  </div>
+  <h1 class="hero-title">Uber India — and the driver<br/>who says <em>"cancel karo, cash dedo"</em></h1>
+  <p class="hero-sub">A full product teardown of Uber's India marketplace — where cash is cultural, UPI changed everything, Rapido is eating Uber's lunch, and the driver asking you to cancel is not a villain. He is a symptom of a platform that never truly designed for him.</p>
+  <div class="hero-stats">
+    <div class="h-stat">
+      <span class="h-stat-num">>35%</span>
+      <span class="h-stat-label">Uber's effective take rate on short city rides</span>
+    </div>
+    <div class="h-stat">
+      <span class="h-stat-num">₹219</span>
+      <span class="h-stat-label">Driver earned on a ₹368 fare — documented case</span>
+    </div>
+    <div class="h-stat">
+      <span class="h-stat-num">₹9–12K</span>
+      <span class="h-stat-label">Extra monthly income a driver gains going off-platform</span>
+    </div>
+    <div class="h-stat">
+      <span class="h-stat-num">Zero</span>
+      <span class="h-stat-label">Insurance coverage once the trip goes off-app</span>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- INDIA CONTEXT -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">01</div>
+      <div class="cs-eyebrow">India context — why this market is different</div>
+      <h2 class="cs-title">This is not the US. The dynamics here are fundamentally different.</h2>
+    </div>
+    <div class="context-banner">
+      <div class="cb-icon">🇮🇳</div>
+      <div class="cb-text">Before we analyse the problem, the India context must be established. Uber India operates in a market where <strong>cash payments are cultural, not unusual</strong> — UPI makes off-platform payment frictionless, auto-rickshaws are the real competition, driver economics are far more precarious than in the West, and new-age zero-commission platforms like Rapido and Namma Yatri have fundamentally changed what drivers expect from a platform.</div>
+    </div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--orange);">India context 1</div>
+        <div class="ic-title">UPI makes off-platform payment trivially easy</div>
+        <div class="ic-body">In the US, going off-platform means handling physical cash awkwardly. In India, a rider can pay via PhonePe, Google Pay, or Paytm in seconds — the same apps they use for everything. The friction that deters off-platform behaviour in Western markets barely exists here.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--orange);">India context 2</div>
+        <div class="ic-title">Cash is not suspicious — it is normal</div>
+        <div class="ic-body">Most Indian riders have paid auto-rickshaw drivers in cash their entire lives. Being asked to pay in cash or UPI does not feel like a scam the way it might in other markets — which makes the behaviour more socially acceptable and harder to deter.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--orange);">India context 3</div>
+        <div class="ic-title">Rapido and Namma Yatri changed the baseline</div>
+        <div class="ic-body">Rapido's zero-commission subscription model — launched in 2023 — and Namma Yatri's direct-to-driver model have reframed what drivers believe is fair. Drivers now have concrete alternatives. Uber's commission model is no longer the only option — it is increasingly the worst option.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--orange);">India context 4</div>
+        <div class="ic-title">Most drivers don't own the car</div>
+        <div class="ic-body">A large portion of Indian Uber drivers rent their vehicle from fleet owners at ₹800–1,200 per day — regardless of how many rides they complete. After the daily rent, Uber's commission, fuel, and phone data, a slow day can mean earning less than minimum wage. The math of going off-platform is not marginal — it is survival.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER LENS -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">02</div>
+      <div class="cs-eyebrow">Strategy canvas · User lens</div>
+      <h2 class="cs-title">Who is the real user in India — and what job are they hiring Uber to do?</h2>
+    </div>
+    <div class="prose">
+      <p>In India, Uber competes not just with Ola and Rapido — but with the neighbourhood auto-rickshaw driver, the local city cab, and increasingly, with bike taxis. The user landscape is more layered than anywhere else Uber operates.</p>
+    </div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--blue);">Rider · urban professional</div>
+        <div class="ic-title">Predictability in an unpredictable city</div>
+        <div class="ic-body">The primary urban rider hires Uber for the same reason globally — certainty. In Bengaluru traffic or Delhi summer heat, the upfront fare, GPS tracking, and AC car is the product. They will pay a premium for not haggling with an auto driver. But their loyalty is thin — if Rapido shows up cheaper, they switch.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--blue);">Rider · price-sensitive</div>
+        <div class="ic-title">Cheapest option that is not an auto</div>
+        <div class="ic-body">A large segment of Indian riders use Uber because it is marginally more comfortable than an auto-rickshaw and often comparable in price. For this user, paying cash to the driver is not a problem — it is actually preferable. They are not losing a safety net they valued.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--green);">Driver · owner-operator</div>
+        <div class="ic-title">Maximise take-home after EMI and fuel</div>
+        <div class="ic-body">An owner-driver with a vehicle loan has fixed monthly outgoings of ₹15,000–25,000 before earning a rupee. Every percentage point Uber takes directly reduces what goes toward the EMI. Going off-platform on 5-7 rides a day adds ₹9,000–12,000 per month — the difference between managing and drowning.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--green);">Driver · fleet attachment</div>
+        <div class="ic-title">Cover the daily rental, survive the rest</div>
+        <div class="ic-body">A driver renting from a fleet owner pays ₹800–1,200 daily before a single ride. On slow days, the daily rental alone can consume most earnings. This driver has the highest incentive to go off-platform — every rupee saved on commission directly reduces the loss they are already absorbing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM LENS -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">03</div>
+      <div class="cs-eyebrow">Strategy canvas · Problem lens</div>
+      <h2 class="cs-title">What problem does Uber actually solve in India — and is it still solving it?</h2>
+    </div>
+    <div class="prose">
+      <p>Uber's original India promise was the same as globally — <strong>trust in an untrustworthy transaction.</strong> In Indian cities where cab drivers routinely refused short trips, argued fares, and took circuitous routes, a metered, pre-booked, GPS-tracked ride was genuinely transformative.</p>
+      <p>But that trust advantage has eroded. Rapido and Namma Yatri are trusted. Ola is trusted. The differentiation that once justified Uber's premium is increasingly theoretical — especially when the driver asking you to cancel is literally sitting in the Uber car right in front of you.</p>
+    </div>
+    <div class="quote-block">
+      <div class="quote-text">"I'll complete the ride offline, but can you cancel it on the app and pay me the fare that the app is showing? I'll drop you safely — pay me ten rupees less."</div>
+      <div class="quote-source">Documented case — Uber driver Irshad Khan, Gurugram · Entrackr investigation</div>
+    </div>
+    <div class="data-callout">
+      <div class="dc-label">The real numbers — documented by Entrackr</div>
+      <div class="dc-body">On one documented ride, <strong>a passenger paid ₹368. The driver received ₹219.68.</strong> After ₹10 in taxes, Uber took over 35% of the fare. Khan estimated that convincing 5–7 passengers per day to pay cash directly adds <strong>₹9,000–12,000 per month</strong> to his income. This is not petty opportunism. This is structural income supplementation in response to a platform that leaves drivers financially exposed.</div>
+    </div>
+  </div>
+
+  <!-- BUSINESS MODEL -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">04</div>
+      <div class="cs-eyebrow">Strategy canvas · Business model lens</div>
+      <h2 class="cs-title">How does Uber make money in India — and why the model is breaking down</h2>
+    </div>
+    <div class="prose">
+      <p>Uber India's commission-based model — historically 15–25% per ride — is being dismantled by competitive and regulatory pressure simultaneously. <strong>In October 2025, Uber switched to a nationwide subscription-based model for all driver partners across India</strong>, moving away from per-ride commissions entirely — for cars, autos, and bikes.</p>
+      <p>This is an extraordinary admission. The commission model that Uber built its entire global business on has been abandoned in India under pressure from Rapido, Namma Yatri, and regulatory uncertainty around GST. The off-platform cash problem is one of the primary forces that accelerated this shift.</p>
+    </div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--red);">Old model — broken</div>
+        <div class="ic-title">Commission per ride (15–25%)</div>
+        <div class="ic-body">Uber took 15–25% of every fare. On short rides, the effective take rate regularly exceeded 35% once booking fees were included. Drivers received less than half the rider's payment on many documented trips. This model created the off-platform cash behaviour and drove drivers to Rapido.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--green);">New model — subscription</div>
+        <div class="ic-title">Daily or monthly flat fee</div>
+        <div class="ic-body">Under the subscription model, drivers pay a flat daily or monthly fee and keep 100% of the fare. Riders pay drivers directly via cash or UPI. Uber no longer processes fare payments for autos — it just connects driver to rider. The off-platform behaviour is now, ironically, the official model for autos.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--orange);">Rapido's disruption</div>
+        <div class="ic-title">Zero commission pioneer</div>
+        <div class="ic-body">Rapido introduced the subscription model in 2023. Auto drivers pay ₹5–29 per day or ₹500 per month — and keep everything else. This pulled drivers away from Uber and Ola rapidly. Namma Yatri went further — no commission, no subscription, just a direct-to-driver ONDC-based model. Uber's hand was forced.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--purple);">GST complexity</div>
+        <div class="ic-title">Regulatory pressure accelerated the shift</div>
+        <div class="ic-body">Under the commission model, Uber faced 5–12% GST on each ride. Under the subscription SaaS model, the GST liability is the driver's — not Uber's. Karnataka's AAR rulings created uncertainty that made the commission model legally risky. The subscription model solved a tax problem as much as a competitive one.</div>
+      </div>
+    </div>
+    <div class="data-callout red">
+      <div class="dc-label">The core tension in India</div>
+      <div class="dc-body">Uber entered India as a trust infrastructure play. It is now transitioning into a <strong>pure marketplace connector</strong> — like JustDial for rides. Under the subscription model for autos, Uber explicitly says: "We're not involved in fare-related disputes between riders and drivers." <strong>The trust machine has handed trust back to the driver.</strong> Whether that is a strategic pivot or a surrender depends on your perspective.</div>
+    </div>
+  </div>
+
+  <!-- MOAT -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">05</div>
+      <div class="cs-eyebrow">Strategy canvas · Moat lens</div>
+      <h2 class="cs-title">What is Uber's moat in India — and why it is significantly weaker here</h2>
+    </div>
+    <div class="prose">
+      <p>In India, Uber's global moats translate poorly. Regulatory relationships matter less when state governments are actively regulating against you. Data advantages erode when Rapido has comparable volumes. And brand loyalty from riders evaporates the moment a Rapido bike shows up in 2 minutes for half the price.</p>
+    </div>
+    <div class="moat-table">
+      <div class="mt-row header">
+        <div class="mt-cell">Moat type</div>
+        <div class="mt-cell">India-specific reality</div>
+        <div class="mt-cell">Strength</div>
+      </div>
+      <div class="mt-row">
+        <div class="mt-cell">Brand recognition</div>
+        <div class="mt-cell">Strong in metros. Weaker in Tier 2 cities where Ola is older and Rapido is growing faster. Urban professionals use Uber. Price-sensitive riders have already moved to Rapido bikes and autos.</div>
+        <div class="mt-cell"><span class="strength-med">Medium</span></div>
+      </div>
+      <div class="mt-row">
+        <div class="mt-cell">Rider experience</div>
+        <div class="mt-cell">Upfront pricing and GPS tracking remain genuine advantages. Maharashtra's Aggregator Cabs Policy 2025 mandates real-time GPS and emergency buttons — Uber already has these, giving it compliance headstart over smaller players.</div>
+        <div class="mt-cell"><span class="strength-strong">Strong</span></div>
+      </div>
+      <div class="mt-row">
+        <div class="mt-cell">Driver supply</div>
+        <div class="mt-cell">Critically weakened. Rapido and Namma Yatri offer better economics. Drivers multi-app constantly. Maharashtra policy mandating 80% fare share to drivers forces platforms to compete on economics, not just volume.</div>
+        <div class="mt-cell"><span class="strength-weak">Weak</span></div>
+      </div>
+      <div class="mt-row">
+        <div class="mt-cell">Regulatory position</div>
+        <div class="mt-cell">Actively challenged. Maharashtra Aggregator Cabs Policy 2025 mandates licences, GPS, driver verification, and penalties for cancellations. GST rulings create ongoing uncertainty. Government's Sahkar Taxi cooperative is a direct threat.</div>
+        <div class="mt-cell"><span class="strength-weak">Weakening</span></div>
+      </div>
+      <div class="mt-row">
+        <div class="mt-cell">Payment ecosystem</div>
+        <div class="mt-cell">UPI's ubiquity is a double-edged sword. It made cashless payments frictionless — but it also made off-platform payments equally frictionless. The payment moat that exists in cash-heavy Western markets does not exist in India.</div>
+        <div class="mt-cell"><span class="strength-weak">Weak</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE PROBLEM -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">06</div>
+      <div class="cs-eyebrow">PM problem framing · The problem in India</div>
+      <h2 class="cs-title">"Cancel karo, cash dedo" — who actually has a problem here?</h2>
+    </div>
+    <div class="prose">
+      <p>A driver accepts a ride. Before or shortly after the rider enters, they ask: cancel on the app and pay me directly via UPI or cash — same amount, sometimes ₹10 less. In 30 seconds, a UPI transfer is done. No record. No Uber commission. No safety infrastructure.</p>
+      <p>This is documented, widespread, and structurally rational. Understanding who has a problem — and what their actual problem is — is the only way to design a solution that works.</p>
+    </div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--red);">Rider problem — safety</div>
+        <div class="ic-title">Loss of protections most riders don't know they have</div>
+        <div class="ic-body">The average Indian rider does not know that going off-platform means losing Uber's insurance coverage, GPS accountability, trip record, and dispute resolution. Women riders at night are particularly exposed — the emergency button disappears the moment the app trip is cancelled. The risk is real and invisible.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--red);">Rider problem — coercion</div>
+        <div class="ic-title">Social pressure in a physically dependent situation</div>
+        <div class="ic-body">Saying no to a driver who has already arrived — in a city, at a railway station at 4am, in summer heat — is socially uncomfortable and sometimes feels unsafe. Many riders comply not because they want to but because the cost of refusing feels higher than the cost of agreeing.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--accent);">Driver reality — not villainy</div>
+        <div class="ic-title">A documented survival strategy, not opportunism</div>
+        <div class="ic-body">Entrackr documented driver Irshad Khan making this request on every ride — not out of dishonesty, but as what he called his "mark of protest." With Uber's effective take rate exceeding 35% on some rides, the driver is doing the rational thing. The system failed him before he found his workaround.</div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-label" style="color: var(--blue);">Uber problem — existential</div>
+        <div class="ic-title">This behaviour proved the commission model was broken</div>
+        <div class="ic-body">The scale of off-platform cash behaviour in India was one of the signals that accelerated Uber's shift to a subscription model. It was a canary in the coal mine. Every off-platform trip was a data point that drivers valued their income more than platform loyalty — and Uber was not providing enough value to change that calculus.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPPORTUNITY STATEMENT -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">07</div>
+      <div class="cs-eyebrow">PM problem framing · Opportunity statement</div>
+      <h2 class="cs-title">Framing the right problem to solve</h2>
+    </div>
+    <div class="prose">
+      <p>The instinct is to frame this as a fraud/compliance problem. That is wrong, and solutions built on that framing will fail. The right framing recognises the economic root cause while protecting the rider.</p>
+    </div>
+    <div class="opportunity-box">
+      <div class="ob-label">Opportunity statement</div>
+      <div class="ob-text">For Uber riders in India during trip commencement, driver-initiated requests to go off-platform via UPI or cash cause loss of safety protections — GPS tracking, insurance, dispute resolution — in a market where UPI makes compliance frictionless and rider awareness of these risks is near-zero. If we eliminate the economic conditions that drive this behaviour while making safety protections visible and valuable to riders, we expect a measurable reduction in off-platform trips and improved rider safety confidence — without damaging the driver supply Uber depends on.</div>
+    </div>
+    <div style="margin-top: 2rem;">
+      <div class="cs-eyebrow" style="margin-bottom: 1rem;">Three-layer hypothesis</div>
+      <div class="hypothesis">
+        <div class="hyp-layer hyp-outcome">
+          <div class="hyp-label-col"><span class="hyp-badge">Outcome</span></div>
+          <div class="hyp-content">We believe reducing driver-initiated off-platform requests will <strong>increase rider safety confidence and measurably reduce off-platform trip leakage</strong>, tracked via cancellation pattern analysis, UPI payment signals, and rider-reported incidents — targeting 60%+ reduction in flagged pre-trip cancellations within two release cycles.</div>
+        </div>
+        <div class="hyp-layer hyp-problem">
+          <div class="hyp-label-col"><span class="hyp-badge">Problem</span></div>
+          <div class="hyp-content">We believe this behaviour persists in India because <strong>UPI removes payment friction, cash is culturally normal, Uber's effective take rate creates strong economic incentive to bypass the platform, and most riders do not understand what safety protections they lose</strong> when they comply — evidenced by documented driver testimony and widespread social media incidents.</div>
+        </div>
+        <div class="hyp-layer hyp-solution">
+          <div class="hyp-label-col"><span class="hyp-badge">Solution</span></div>
+          <div class="hyp-content">We believe that <strong>making safety protections tangibly visible at the moment of coercion, combined with a frictionless one-tap reporting mechanism and economic rebalancing on short rides</strong>, will reduce off-platform behaviour without heavy enforcement that erodes driver supply. Success signal: 60%+ drop in flagged pre-trip cancellations within two release cycles.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KILLER ASSUMPTIONS -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">08</div>
+      <div class="cs-eyebrow">PM problem framing · Killer assumptions</div>
+      <h2 class="cs-title">What must be true for any India-specific solution to work?</h2>
+    </div>
+    <div class="prose"><p>India's unique context invalidates several assumptions that might hold in other markets. These must be tested before a single story is written.</p></div>
+    <div class="assumptions">
+      <div class="assumption-row">
+        <div class="ar-num">01</div>
+        <div class="ar-content">
+          <div class="ar-title">Indian riders value the safety protections they are losing</div>
+          <div class="ar-body">In India, many riders who comply with off-platform requests do not know they are losing GPS tracking and insurance. If awareness interventions do not change behaviour — if riders simply do not care enough — then the entire safety-based solution collapses. This must be tested with real users, not assumed.</div>
+        </div>
+        <div><span class="ar-risk risk-killer">Killer assumption</span></div>
+      </div>
+      <div class="assumption-row">
+        <div class="ar-num">02</div>
+        <div class="ar-content">
+          <div class="ar-title">Riders will report coercion despite social discomfort</div>
+          <div class="ar-body">Indian social norms make confrontation uncomfortable. A reporting mechanism that requires visible action in front of the driver will not be used. Any solution must allow completely invisible, one-tap reporting that the driver cannot detect — or it will fail at the point of use.</div>
+        </div>
+        <div><span class="ar-risk risk-killer">Killer assumption</span></div>
+      </div>
+      <div class="assumption-row">
+        <div class="ar-num">03</div>
+        <div class="ar-content">
+          <div class="ar-title">The subscription model shift hasn't already solved the problem for autos</div>
+          <div class="ar-body">For auto-rickshaw trips, Uber's subscription model already makes direct payment the official method — so "off-platform" no longer applies to autos. The problem now concentrates in cab trips. Any solution must be scoped specifically to cab rides, not the entire fleet.</div>
+        </div>
+        <div><span class="ar-risk risk-high">High risk</span></div>
+      </div>
+      <div class="assumption-row">
+        <div class="ar-num">04</div>
+        <div class="ar-content">
+          <div class="ar-title">Detecting off-platform cab trips is technically feasible</div>
+          <div class="ar-body">A driver can turn off app location tracking after cancellation. Uber has no GPS signal on a completed off-platform trip. Detection must rely on pre-trip signals — cancellation timing, geolocation patterns, subsequent ride acceptance gaps — not post-trip evidence. This is a harder data problem in India than in markets with stricter digital compliance.</div>
+        </div>
+        <div><span class="ar-risk risk-high">High risk</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKATEBOARD IDEAS -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">09</div>
+      <div class="cs-eyebrow">PM problem framing · Skateboard options</div>
+      <h2 class="cs-title">Five India-specific directions — not solutions yet</h2>
+    </div>
+    <div class="prose"><p>Each direction is designed for the India context — UPI ubiquity, low rider awareness, social discomfort with confrontation, and the subscription model already active for autos.</p></div>
+    <div class="skateboard-grid">
+      <div class="sb-card">
+        <div class="sb-header">
+          <div class="sb-title">Make safety protections visible at the moment of coercion</div>
+          <span class="sb-badge sb-recommended">Recommended skateboard</span>
+        </div>
+        <div class="sb-body">When a driver initiates a pre-trip cancellation, trigger an in-app screen that clearly shows what the rider is about to lose — in plain Hindi or the local language: "If you cancel this trip, you lose GPS tracking, ₹10 lakh accident insurance, and the ability to report issues." Include a one-tap "Report this request" option that is completely invisible to the driver. Most Indian riders have no idea these protections exist. Making them visible at the exact moment they are about to be surrendered is the highest-leverage, lowest-cost intervention possible.</div>
+        <div class="sb-who">Targets: <strong>Rider awareness · Safety · Detection signal</strong></div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-header">
+          <div class="sb-title">Redesign the cancellation flow with India-specific prompts</div>
+          <span class="sb-badge sb-alt">Alternative</span>
+        </div>
+        <div class="sb-body">The current cancellation screen asks "Why are you cancelling?" with generic options. Add "Driver asked me to cancel and pay cash/UPI" as a first-class option — in English, Hindi, and regional languages. Normalise reporting by making it a standard flow rather than a complaint. Every coerced cancellation becomes a data point. Zero new infrastructure required — one UX change.</div>
+        <div class="sb-who">Targets: <strong>Data signal · Reporting normalisation · Low cost</strong></div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-header">
+          <div class="sb-title">Behavioural pattern detection using pre-trip signals</div>
+          <span class="sb-badge sb-alt">Alternative</span>
+        </div>
+        <div class="sb-body">Build a model using pre-trip cancellation timing, location patterns, and subsequent ride gaps to flag likely off-platform behaviour for human review. In India specifically, cross-reference against UPI transaction data where permissible under DPDP Act guidelines. Not automatic deactivation — probabilistic flagging for review, starting with repeat patterns in high-incidence corridors like airport routes and railway stations.</div>
+        <div class="sb-who">Targets: <strong>Systematic detection · High-incidence corridors · Repeat offenders</strong></div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-header">
+          <div class="sb-title">Localised driver economics rebalancing on short rides</div>
+          <span class="sb-badge sb-alt">Alternative</span>
+        </div>
+        <div class="sb-body">The off-platform behaviour is highest on short city rides where the commission eats the most disproportionate share. Reduce the effective take rate on rides under 5km — the trip type most likely to generate ₹30-50 fares where the commission is felt most acutely. This directly addresses the root cause. Works better now that Uber has already moved to subscription for autos and is reconsidering car commissions.</div>
+        <div class="sb-who">Targets: <strong>Root cause · Driver economics · Short-ride corridor</strong></div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-header">
+          <div class="sb-title">Women-specific safety signal — silent SOS</div>
+          <span class="sb-badge sb-alt">Alternative</span>
+        </div>
+        <div class="sb-body">Maharashtra's 2025 policy specifically flagged women's safety as a key driver of regulation. Build a completely invisible gesture-based trigger — three taps in sequence on the logo — that sends a silent alert to a pre-saved contact and timestamps a safety record. Does not visibly change the app. Driver sees nothing. Specifically designed for situations where visible action feels unsafe. Addresses the Maharashtra regulatory mandate and the documented gap in women's safety.</div>
+        <div class="sb-who">Targets: <strong>Women's safety · Maharashtra compliance · Silent reporting</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEEL THREAD -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">10</div>
+      <div class="cs-eyebrow">PM problem framing · Steel thread</div>
+      <h2 class="cs-title">What to build first in the India context</h2>
+    </div>
+    <div class="verdict-block">
+      <div class="vb-label">Recommended first increment — India-specific</div>
+      <div class="vb-title">Safety protections visibility screen + localised cancellation flow redesign</div>
+      <div class="vb-body">
+        <p>These two together are the steel thread for India. The key insight that makes India different: <strong>riders here do not know what they are giving up.</strong> In the US, riders broadly understand that going off-platform is risky. In India, a rider who has paid auto-rickshaw drivers in cash their entire life has no intuitive sense that this Uber trip is fundamentally different.</p>
+        <p><strong>The safety protections screen</strong> solves this with zero new feature development — it is one intercept screen that appears when a pre-trip cancellation is requested. It must be in the rider's language, it must name the specific protections (insurance amount, GPS tracking, emergency button), and it must make the one-tap report invisible to the driver.</p>
+        <p><strong>The cancellation flow redesign</strong> adds "Driver asked me to cancel and pay directly" as a first-class option. This generates the data signal that tells Uber which drivers, on which corridors, at which times, are making these requests systematically.</p>
+        <p><strong>What success looks like in India:</strong> Within two release cycles, Uber has geo-tagged data on which city corridors (airport routes, railway stations, late-night rides) have the highest off-platform incidence. That data makes every subsequent intervention — driver economics rebalancing, targeted enforcement, corridor-specific pricing — informed rather than guessed.</p>
+        <p><strong>The Maharashtra compliance bonus:</strong> Both these interventions directly contribute to compliance with Maharashtra's Aggregator Cabs Policy 2025 — which mandates better passenger safety mechanisms and driver accountability. Building this is not just the right product decision. It is also regulatory risk mitigation.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT I WOULD CHANGE -->
+  <div class="canvas-section fade-up">
+    <div class="cs-header">
+      <div class="cs-num">11</div>
+      <div class="cs-eyebrow">Strategy canvas · Change lens</div>
+      <h2 class="cs-title">Two things I would change about Uber India's approach</h2>
+    </div>
+    <div class="insight-grid">
+      <div class="insight-card" style="border-top: 2px solid var(--green);">
+        <div class="ic-label" style="color: var(--green);">Change 01</div>
+        <div class="ic-title">Build for the driver as a first-class user, not as infrastructure</div>
+        <div class="ic-body">Uber India's entire product — rating systems, earnings tracking, support — is built for the rider. The driver's app is an afterthought. Rapido built driver-first from day one. Namma Yatri was literally built by a driver union. Uber should invest in driver-facing product with the same rigour as rider-facing: transparent earnings, fair dispute resolution, in-language support. The off-platform cash behaviour is the direct consequence of treating drivers as supply rather than users.</div>
+      </div>
+      <div class="insight-card" style="border-top: 2px solid var(--blue);">
+        <div class="ic-label" style="color: var(--blue);">Change 02</div>
+        <div class="ic-title">Use the subscription transition to rebuild trust, not just comply</div>
+        <div class="ic-body">Uber's switch to the subscription model in India was reactive — forced by Rapido, GST uncertainty, and regulatory pressure. The opportunity is to make it proactive: transparently communicate to drivers exactly what they earn on every trip, build a driver earnings dashboard with weekly trend data, and create a community of practice for high-rated drivers. The model changed. The relationship does not have to stay broken.</div>
+      </div>
+    </div>
+    <div class="data-callout green" style="margin-top: 1.5rem;">
+      <div class="dc-label">The regulatory opportunity</div>
+      <div class="dc-body">Maharashtra's Aggregator Cabs Policy 2025 mandates that <strong>drivers receive at least 80% of every fare.</strong> This is the state government doing what Uber's economics should have done years ago. Rather than treating this as a compliance burden, Uber should lead on it — build it into the product, make it visible to drivers, and use it as a recruitment advantage against platforms that are slower to comply.</div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+
+<div class="closing fade-up">
+  <div class="closing-title">What this really tells us about platform businesses in India</div>
+  <div class="closing-body">
+    <p>"Cancel karo, cash dedo" is not a driver behaviour problem. It is a platform design problem that manifested as a driver behaviour.</p>
+    <p>Uber built a trust machine for a market where the rider's problem was uncertainty. But it ignored the driver's problem — which was economic precarity. In India, where UPI makes off-platform payment a 30-second act and cash has no social stigma, the economic imbalance expressed itself faster and more visibly than anywhere else.</p>
+    <p>Rapido and Namma Yatri did not beat Uber on technology. They beat Uber on understanding who the real user was — and designing for both sides of the marketplace, not just the side that feels like the customer.</p>
+    <p>The most important lesson for any PM building a two-sided platform: the supply side is not infrastructure. They are users too. Design for them or they will design around you.</p>
+  </div>
+</div>
+
+<div class="footer-bar">
+  <p>Written by <a href="index.html">Shailesh Bhardwaj</a> · Product System Architect</p>
+  <p>Part of an ongoing <a href="index.html#teardowns">product teardown series</a></p>
+</div>
+
+</div>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
