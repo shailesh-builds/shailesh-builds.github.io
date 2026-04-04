@@ -47,9 +47,10 @@
   h1.hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(2.6rem, 5.5vw, 4.4rem); line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 1.25rem; }
   h1.hero-title em { font-style: italic; color: var(--accent); }
   .hero-sub { font-size: 1.05rem; color: var(--text-soft); max-width: 640px; line-height: 1.85; margin-bottom: 2.5rem; }
-  .hero-stats { display: inline-flex; gap: 0; border: 0.5px solid var(--border); flex-wrap: wrap; }
-  .h-stat { padding: 1rem 1.5rem; border-right: 0.5px solid var(--border); text-align: center; }
-  .h-stat:last-child { border-right: none; }
+  .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 0.5px solid var(--border); width: 100%; max-width: 560px; }
+  .h-stat { padding: 1rem 1.5rem; border-right: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); text-align: center; }
+  .h-stat:nth-child(2n) { border-right: none; }
+  .h-stat:nth-last-child(-n+2) { border-bottom: none; }
   .h-stat-num { font-family: 'Instrument Serif', serif; font-size: 1.8rem; color: var(--accent); display: block; line-height: 1; }
   .h-stat-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.3rem; letter-spacing: 0.03em; max-width: 130px; line-height: 1.3; }
 
@@ -171,8 +172,8 @@
     .hyp-label-col { border-right: none; border-bottom: 0.5px solid var(--border); }
     .mt-row { grid-template-columns: 1fr; }
     .mt-cell:nth-child(2) { border-left: none; border-right: none; border-top: 0.5px solid var(--border); }
-    .hero-stats { flex-direction: column; width: 100%; }
-    .h-stat { border-right: none; border-bottom: 0.5px solid var(--border); }
+    .hero-stats { grid-template-columns: 1fr 1fr; max-width: 100%; }
+    .h-stat { border-bottom: 0.5px solid var(--border); }
     nav { padding: 1rem 1.25rem; }
     .canvas-section, .hero, .closing, .footer-bar { padding-left: 1.25rem; padding-right: 1.25rem; }
   }
@@ -611,7 +612,7 @@
 </div>
 
 <div class="footer-bar">
-  <p>Written by <a href="index.html">Shailesh Bhardwaj</a> · Building products that actually matter.</p>
+  <p>Written by <a href="index.html">Shailesh Bhardwaj</a> · Building products that actually matter</p>
   <p>Part of an ongoing <a href="index.html#teardowns">product teardown series</a></p>
 </div>
 
