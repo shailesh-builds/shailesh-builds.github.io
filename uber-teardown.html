@@ -126,11 +126,11 @@
   .sb-who { margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-muted); font-family: 'Syne', sans-serif; letter-spacing: 0.04em; }
   .sb-who strong { color: var(--text-soft); font-weight: 400; }
 
-  .moat-table { margin-top: 2rem; border: 0.5px solid var(--border); width: 100%; }
-  .mt-row { display: grid; grid-template-columns: 180px 1fr 100px; border-bottom: 0.5px solid var(--border); }
+  .moat-table { margin-top: 2rem; border: 0.5px solid var(--border); width: 100%; overflow: hidden; }
+  .mt-row { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) minmax(80px, 100px); border-bottom: 0.5px solid var(--border); }
   .mt-row:last-child { border-bottom: none; }
   .mt-row.header { background: var(--surface); }
-  .mt-cell { padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--text-soft); }
+  .mt-cell { padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--text-soft); word-break: break-word; }
   .mt-row.header .mt-cell { font-family: 'Syne', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
   .mt-cell:nth-child(1) { color: var(--text); }
   .mt-cell:nth-child(2) { border-left: 0.5px solid var(--border); border-right: 0.5px solid var(--border); }
