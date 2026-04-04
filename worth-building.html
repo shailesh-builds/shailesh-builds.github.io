@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Is This Worth Building? — A PM Decision Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0e0e0d;
+    --surface: #161614;
+    --surface-2: #1e1e1b;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --text: #f0ede6;
+    --text-soft: rgba(240,237,230,0.55);
+    --text-muted: rgba(240,237,230,0.3);
+    --accent: #e8c547;
+    --accent-dim: rgba(232,197,71,0.12);
+    --accent-dim2: rgba(232,197,71,0.06);
+    --green: #4ecb8d;
+    --green-dim: rgba(78,203,141,0.1);
+    --red: #e85d5d;
+    --red-dim: rgba(232,93,93,0.1);
+    --amber: #e8a44a;
+    --amber-dim: rgba(232,164,74,0.1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+
+  /* HEADER */
+  .header { margin-bottom: 3.5rem; }
+  .header-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header-eyebrow::after {
+    content: ''; flex: 1; height: 0.5px; background: var(--accent); opacity: 0.3;
+  }
+  .header-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    line-height: 1.1; letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+  .header-title em { font-style: italic; color: var(--accent); }
+  .header-desc { font-size: 1rem; color: var(--text-soft); max-width: 520px; line-height: 1.75; }
+
+  /* IDEA INPUT */
+  .idea-block { margin-bottom: 2rem; }
+  .input-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 0.6rem;
+    display: block;
+  }
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 300;
+    line-height: 1.6;
+    padding: 1.1rem 1.25rem;
+    resize: vertical;
+    min-height: 110px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  textarea::placeholder { color: var(--text-muted); }
+  textarea:focus { border-color: var(--border-hover); }
+
+  /* SLIDERS */
+  .sliders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+  .slider-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .slider-card:hover { border-color: var(--border-hover); }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; }
+  .slider-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-soft);
+  }
+  .slider-val {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.5rem; color: var(--accent);
+  }
+  .slider-desc { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+  input[type=range] {
+    width: 100%; height: 3px;
+    -webkit-appearance: none;
+    background: var(--border-hover);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* BUTTON */
+  .btn-wrap { margin-bottom: 2.5rem; }
+  button {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 3px;
+    padding: 0.9rem 2.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button:hover { opacity: 0.88; transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* VERDICT */
+  .verdict { display: none; animation: fadeUp 0.4s ease forwards; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .verdict-banner {
+    border-radius: 4px;
+    padding: 2rem 2rem 1.75rem;
+    margin-bottom: 1.5rem;
+    border: 0.5px solid;
+  }
+  .verdict-banner.green { background: var(--green-dim); border-color: rgba(78,203,141,0.25); }
+  .verdict-banner.amber { background: var(--amber-dim); border-color: rgba(232,164,74,0.25); }
+  .verdict-banner.red { background: var(--red-dim); border-color: rgba(232,93,93,0.25); }
+
+  .verdict-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .verdict-banner.green .verdict-label { color: var(--green); }
+  .verdict-banner.amber .verdict-label { color: var(--amber); }
+  .verdict-banner.red .verdict-label { color: var(--red); }
+
+  .verdict-headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    line-height: 1.2; margin-bottom: 1rem;
+  }
+  .verdict-body { font-size: 0.9rem; color: var(--text-soft); line-height: 1.75; }
+
+  /* BREAKDOWN */
+  .breakdown { margin-bottom: 1.5rem; }
+  .breakdown-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 1rem;
+  }
+  .dimension-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .dimension-row:last-child { border-bottom: none; }
+  .dim-name { font-size: 0.82rem; color: var(--text-soft); min-width: 130px; }
+  .dim-bar-wrap { flex: 1; height: 4px; background: var(--border-hover); border-radius: 2px; overflow: hidden; }
+  .dim-bar { height: 100%; border-radius: 2px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+  .dim-score { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; min-width: 30px; text-align: right; }
+
+  /* AI ANALYSIS */
+  .ai-block {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .ai-block-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+  }
+  .ai-text { font-size: 0.88rem; color: var(--text-soft); line-height: 1.8; }
+  .ai-text p + p { margin-top: 0.75rem; }
+
+  .loading-state { display: none; align-items: center; gap: 12px; padding: 1.25rem 0; }
+  .loading-state.active { display: flex; }
+  .spinner {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--border-hover);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 0.82rem; color: var(--text-muted); }
+
+  /* RESET */
+  .reset-btn {
+    background: transparent; color: var(--text-muted);
+    border: 0.5px solid var(--border);
+    font-size: 0.72rem; padding: 0.6rem 1.25rem;
+    margin-top: 0.5rem;
+  }
+  .reset-btn:hover { border-color: var(--border-hover); color: var(--text-soft); opacity: 1; transform: none; }
+
+  /* FOOTER CREDIT */
+  .credit {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 0.75rem; color: var(--text-muted);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .credit a { color: var(--accent); text-decoration: none; }
+  .credit a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .sliders-grid { grid-template-columns: 1fr; }
+    .wrap { padding: 2.5rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-eyebrow">PM Decision Tool</div>
+    <h1 class="header-title">Is this worth<br/><em>building?</em></h1>
+    <p class="header-desc">Describe your idea. Rate it across four dimensions. Get an honest verdict — and an AI analysis of what to watch out for.</p>
+  </div>
+
+  <div class="idea-block">
+    <label class="input-label" for="idea">Describe your idea or feature</label>
+    <textarea id="idea" placeholder="e.g. A dashboard that shows real-time portfolio health across all active client engagements, so managers can spot at-risk accounts before they escalate..."></textarea>
+  </div>
+
+  <div class="sliders-grid">
+    <div class="slider-card">
+      <div class="slider-header">
+        <span class="slider-title">User value</span>
+        <span class="slider-val" id="val-user">5</span>
+      </div>
+      <div class="slider-desc">How much does this genuinely solve a real pain for a real user?</div>
+      <input type="range" min="1" max="10" value="5" step="1" id="slider-user" oninput="document.getElementById('val-user').textContent=this.value" />
+    </div>
+    <div class="slider-card">
+      <div class="slider-header">
+        <span class="slider-title">Business impact</span>
+        <span class="slider-val" id="val-biz">5</span>
+      </div>
+      <div class="slider-desc">Revenue, retention, cost reduction, compliance — does this move a real needle?</div>
+      <input type="range" min="1" max="10" value="5" step="1" id="slider-biz" oninput="document.getElementById('val-biz').textContent=this.value" />
+    </div>
+    <div class="slider-card">
+      <div class="slider-header">
+        <span class="slider-title">Feasibility</span>
+        <span class="slider-val" id="val-feas">5</span>
+      </div>
+      <div class="slider-desc">How much of this is actually in your team's control to build and ship?</div>
+      <input type="range" min="1" max="10" value="5" step="1" id="slider-feas" oninput="document.getElementById('val-feas').textContent=this.value" />
+    </div>
+    <div class="slider-card">
+      <div class="slider-header">
+        <span class="slider-title">Confidence</span>
+        <span class="slider-val" id="val-conf">5</span>
+      </div>
+      <div class="slider-desc">How well do you actually understand the problem — evidence vs assumption?</div>
+      <input type="range" min="1" max="10" value="5" step="1" id="slider-conf" oninput="document.getElementById('val-conf').textContent=this.value" />
+    </div>
+  </div>
+
+  <div class="btn-wrap">
+    <button id="check-btn" onclick="runCheck()">Get my verdict →</button>
+  </div>
+
+  <div class="loading-state" id="loading">
+    <div class="spinner"></div>
+    <span class="loading-text">Analysing your idea...</span>
+  </div>
+
+  <div class="verdict" id="verdict">
+    <div class="verdict-banner" id="verdict-banner">
+      <div class="verdict-label" id="verdict-label"></div>
+      <div class="verdict-headline" id="verdict-headline"></div>
+      <div class="verdict-body" id="verdict-body"></div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-title">Score breakdown</div>
+      <div class="dimension-row">
+        <span class="dim-name">User value</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" id="bar-user" style="width:0%"></div></div>
+        <span class="dim-score" id="score-user"></span>
+      </div>
+      <div class="dimension-row">
+        <span class="dim-name">Business impact</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" id="bar-biz" style="width:0%"></div></div>
+        <span class="dim-score" id="score-biz"></span>
+      </div>
+      <div class="dimension-row">
+        <span class="dim-name">Feasibility</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" id="bar-feas" style="width:0%"></div></div>
+        <span class="dim-score" id="score-feas"></span>
+      </div>
+      <div class="dimension-row">
+        <span class="dim-name">Confidence</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" id="bar-conf" style="width:0%"></div></div>
+        <span class="dim-score" id="score-conf"></span>
+      </div>
+    </div>
+
+    <div class="ai-block">
+      <div class="ai-block-title">AI analysis — what to watch out for</div>
+      <div class="ai-text" id="ai-text"></div>
+    </div>
+
+    <button class="reset-btn" onclick="reset()">← Start over</button>
+  </div>
+
+  <div class="credit">
+    <span>Built by <a href="https://shailesh-builds.github.io" target="_blank">Shailesh Bhardwaj</a> · Product System Architect</span>
+    <span>Powered by Claude AI</span>
+  </div>
+
+</div>
+
+<script>
+const COLORS = { green: '#4ecb8d', amber: '#e8a44a', red: '#e85d5d' };
+
+function getVerdict(score) {
+  if (score >= 7.5) return {
+    cls: 'green', label: 'Strong signal — worth pursuing',
+    headline: 'This looks worth building.',
+    body: 'Your scores suggest real user value, meaningful business impact, and enough confidence to move forward. The next step is not more planning — it is identifying the smallest experiment that tests your riskiest assumption.'
+  };
+  if (score >= 5.5) return {
+    cls: 'amber', label: 'Conditional — sharpen before committing',
+    headline: 'Maybe. But do your homework first.',
+    body: 'There is something here, but the gaps in your scores suggest you are not ready to build yet. Find the lowest-scoring dimension and treat it as your next discovery question — not your next sprint.'
+  };
+  return {
+    cls: 'red', label: 'Weak signal — pause and reconsider',
+    headline: 'Not yet. Possibly not at all.',
+    body: 'Your scores reveal significant uncertainty across one or more critical dimensions. Building now would be precision-aiming in the dark. Go back to the problem — talk to users, challenge your assumptions, and reframe the opportunity before writing a single story.'
+  };
+}
+
+async function runCheck() {
+  const idea = document.getElementById('idea').value.trim();
+  if (!idea) { alert('Please describe your idea first.'); return; }
+
+  const u = +document.getElementById('slider-user').value;
+  const b = +document.getElementById('slider-biz').value;
+  const f = +document.getElementById('slider-feas').value;
+  const c = +document.getElementById('slider-conf').value;
+  const avg = (u + b + f + c) / 4;
+
+  document.getElementById('check-btn').disabled = true;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('verdict').style.display = 'none';
+
+  const v = getVerdict(avg);
+
+  // Set verdict banner
+  const banner = document.getElementById('verdict-banner');
+  banner.className = 'verdict-banner ' + v.cls;
+  document.getElementById('verdict-label').textContent = v.label;
+  document.getElementById('verdict-headline').textContent = v.headline;
+  document.getElementById('verdict-body').textContent = v.body;
+
+  // Set bars
+  const dims = [
+    { id: 'user', val: u },
+    { id: 'biz', val: b },
+    { id: 'feas', val: f },
+    { id: 'conf', val: c }
+  ];
+  dims.forEach(d => {
+    const pct = (d.val / 10) * 100;
+    const bar = document.getElementById('bar-' + d.id);
+    bar.style.background = d.val >= 7 ? COLORS.green : d.val >= 5 ? COLORS.amber : COLORS.red;
+    setTimeout(() => { bar.style.width = pct + '%'; }, 100);
+    document.getElementById('score-' + d.id).textContent = d.val + '/10';
+    document.getElementById('score-' + d.id).style.color = d.val >= 7 ? COLORS.green : d.val >= 5 ? COLORS.amber : COLORS.red;
+  });
+
+  // AI analysis
+  const prompt = `You are a sharp, experienced product coach. A PM has described an idea and self-rated it across four dimensions.
+
+Idea: "${idea}"
+User value: ${u}/10
+Business impact: ${b}/10
+Feasibility: ${f}/10
+Confidence in understanding the problem: ${c}/10
+Overall score: ${avg.toFixed(1)}/10
+
+Write a concise, honest analysis in 3 short paragraphs:
+1. What the scores reveal about this idea — what the pattern of ratings tells you beyond just the numbers
+2. The single biggest risk or blind spot this PM should address before building anything
+3. One concrete next action they should take this week — not "do more research" but something specific and testable
+
+Be direct. Be honest. No fluff. No bullet points. Write in plain prose. Maximum 180 words total.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(b => b.text || '').join('');
+    const paras = text.trim().split(/\n+/).filter(p => p.trim());
+    document.getElementById('ai-text').innerHTML = paras.map(p => `<p>${p}</p>`).join('');
+  } catch(e) {
+    document.getElementById('ai-text').innerHTML = '<p>AI analysis unavailable — but your scores above tell the real story. Focus on your lowest-rated dimension first.</p>';
+  }
+
+  document.getElementById('loading').classList.remove('active');
+  document.getElementById('verdict').style.display = 'block';
+  document.getElementById('check-btn').disabled = false;
+  document.getElementById('verdict').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function reset() {
+  document.getElementById('idea').value = '';
+  ['user','biz','feas','conf'].forEach(d => {
+    document.getElementById('slider-' + d).value = 5;
+    document.getElementById('val-' + d).textContent = '5';
+  });
+  document.getElementById('verdict').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
