@@ -213,6 +213,62 @@
   }
   .tool-tag:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
+  /* PROTOTYPES */
+  .prototypes { background: var(--paper); }
+  .proto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 0.5px solid var(--line); }
+  .proto-card {
+    padding: 2.25rem 2rem;
+    border-right: 0.5px solid var(--line);
+    border-bottom: 0.5px solid var(--line);
+    text-decoration: none; color: inherit;
+    display: block; transition: background 0.2s;
+    position: relative;
+  }
+  .proto-card:hover { background: var(--paper-warm); }
+  .proto-card:nth-child(3n) { border-right: none; }
+  .proto-status {
+    display: inline-block; font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.25rem 0.65rem; margin-bottom: 1rem;
+    border-radius: 2px;
+  }
+  .proto-status.live { background: var(--teal-light); color: var(--teal); }
+  .proto-status.soon { background: var(--paper-warm); color: var(--ink-muted); border: 0.5px solid var(--line); }
+  .proto-title { font-weight: 500; font-size: 1rem; margin-bottom: 0.5rem; }
+  .proto-desc { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 1rem; }
+  .proto-link {
+    font-size: 0.75rem; font-weight: 500; color: var(--accent);
+    letter-spacing: 0.04em; text-decoration: none;
+  }
+  .proto-card:hover .proto-link { text-decoration: underline; }
+
+  /* TEARDOWNS */
+  .teardowns { background: var(--ink); color: var(--paper); }
+  .teardowns .section-tag { color: var(--accent); }
+  .teardowns .section-title { color: var(--paper); }
+  .teardown-intro { font-size: 1rem; color: rgba(247,245,240,0.55); max-width: 560px; line-height: 1.8; margin-bottom: 3rem; }
+  .teardown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .teardown-card {
+    padding: 2rem;
+    border: 0.5px solid rgba(247,245,240,0.08);
+    transition: background 0.2s;
+  }
+  .teardown-card:hover { background: rgba(247,245,240,0.04); }
+  .teardown-tag {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .teardown-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--paper); margin-bottom: 0.5rem; line-height: 1.3; }
+  .teardown-desc { font-size: 0.8rem; color: rgba(247,245,240,0.4); line-height: 1.6; }
+  .teardown-coming {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    border: 0.5px dashed rgba(247,245,240,0.12);
+    text-align: center;
+  }
+  .teardown-coming p { font-size: 0.82rem; color: rgba(247,245,240,0.25); }
+
   /* CONTACT */
   .contact { background: var(--ink); color: var(--paper); text-align: center; }
   .contact .section-title { color: var(--paper); font-size: clamp(2rem, 4vw, 3.2rem); max-width: 600px; margin: 0 auto 2rem; }
@@ -264,6 +320,8 @@
     <a href="#about">About</a>
     <a href="#work">Work</a>
     <a href="#wow">Framework</a>
+    <a href="#prototypes">Tools</a>
+    <a href="#teardowns">Teardowns</a>
     <a href="#contact">Contact</a>
   </div>
 </nav>
@@ -472,6 +530,56 @@
     <span class="tool-tag">RAG-based AI Agents</span>
     <span class="tool-tag">Playwright Automation</span>
     <span class="tool-tag">Vibe Coding</span>
+  </div>
+</section>
+
+<!-- PROTOTYPES -->
+<section class="prototypes" id="prototypes">
+  <div class="section-header">
+    <div class="section-tag">Built by me</div>
+    <h2 class="section-title">PM tools &<br/>prototypes</h2>
+  </div>
+  <div class="proto-grid">
+    <a class="proto-card fade-up" href="worth-building.html" target="_blank">
+      <div class="proto-status live">Live</div>
+      <div class="proto-title">Is this worth building?</div>
+      <div class="proto-desc">A PM decision tool. Describe your idea, rate it across four dimensions, get an honest verdict and an AI analysis of what to watch out for.</div>
+      <span class="proto-link">Try it →</span>
+    </a>
+    <div class="proto-card fade-up">
+      <div class="proto-status soon">Coming soon</div>
+      <div class="proto-title">Opportunity statement generator</div>
+      <div class="proto-desc">Turn a raw pain point into a WOW-compliant opportunity statement and three-layer hypothesis in seconds.</div>
+    </div>
+    <div class="proto-card fade-up">
+      <div class="proto-status soon">Coming soon</div>
+      <div class="proto-title">North Star builder</div>
+      <div class="proto-desc">A guided tool that helps any product team write a measurable North Star statement in under five minutes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TEARDOWNS -->
+<section class="teardowns" id="teardowns">
+  <div class="section-header">
+    <div class="section-tag">Product thinking in public</div>
+    <h2 class="section-title">Product<br/>teardowns</h2>
+  </div>
+  <p class="teardown-intro">A teardown is not a review. It is a structured analysis of how a product creates value — the decisions behind what exists, what is missing, and what could be better. One product at a time.</p>
+  <div class="teardown-grid">
+    <div class="teardown-card">
+      <div class="teardown-tag">Framework</div>
+      <div class="teardown-title">How I do a teardown</div>
+      <div class="teardown-desc">Every teardown follows the same structure — user, problem, solution, monetisation, moat, and what I would change. Consistent lens, honest analysis.</div>
+    </div>
+    <div class="teardown-card">
+      <div class="teardown-tag">Coming soon</div>
+      <div class="teardown-title">First teardown dropping soon</div>
+      <div class="teardown-desc">Picking a product that millions use but few truly understand. The interesting questions are never about the features — they are about the decisions behind them.</div>
+    </div>
+    <div class="teardown-coming">
+      <p>Teardowns published here as they are completed — one product, one honest analysis at a time</p>
+    </div>
   </div>
 </section>
 
