@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shailesh Bhardwaj — Product System Architect</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1a1a18;
+    --ink-soft: #4a4a44;
+    --ink-muted: #8a8a82;
+    --paper: #f7f5f0;
+    --paper-warm: #ede9e0;
+    --accent: #c8622a;
+    --accent-light: #f0e4d8;
+    --teal: #1a6b5a;
+    --teal-light: #d4ede7;
+    --line: rgba(26,26,24,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.25rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(247,245,240,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--line);
+  }
+  .nav-name { font-family: 'DM Serif Display', serif; font-size: 1.1rem; letter-spacing: -0.01em; }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a { font-size: 0.8rem; font-weight: 400; color: var(--ink-soft); text-decoration: none; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 5rem;
+  }
+  .hero-left {
+    padding: 5rem 3rem 5rem 2.5rem;
+    display: flex; flex-direction: column; justify-content: center;
+    border-right: 0.5px solid var(--line);
+  }
+  .hero-tag {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .hero-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.8rem, 5vw, 4.2rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .hero-name em { font-style: italic; color: var(--accent); }
+  .hero-desc {
+    font-size: 1.05rem; color: var(--ink-soft);
+    max-width: 440px; margin-bottom: 2.5rem; line-height: 1.8;
+  }
+  .hero-desc strong { color: var(--ink); font-weight: 500; }
+  .cta-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-block; padding: 0.75rem 1.75rem;
+    background: var(--ink); color: var(--paper);
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em;
+    text-transform: uppercase; text-decoration: none;
+    border: 1.5px solid var(--ink);
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-secondary {
+    display: inline-block; padding: 0.75rem 1.75rem;
+    background: transparent; color: var(--ink);
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em;
+    text-transform: uppercase; text-decoration: none;
+    border: 1.5px solid var(--line);
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); }
+
+  .hero-right {
+    padding: 5rem 2.5rem 5rem 3rem;
+    display: flex; flex-direction: column; justify-content: center;
+    background: var(--paper-warm);
+  }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .stat-item {
+    padding: 2rem;
+    border-bottom: 0.5px solid var(--line);
+    border-right: 0.5px solid var(--line);
+  }
+  .stat-item:nth-child(2n) { border-right: none; }
+  .stat-item:nth-last-child(-n+2) { border-bottom: none; }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.8rem; line-height: 1;
+    color: var(--ink); margin-bottom: 0.4rem;
+  }
+  .stat-num span { font-size: 1.4rem; color: var(--accent); }
+  .stat-label { font-size: 0.78rem; color: var(--ink-muted); letter-spacing: 0.04em; line-height: 1.4; }
+
+  /* SECTION BASE */
+  section { padding: 6rem 2.5rem; }
+  .section-header { margin-bottom: 3.5rem; }
+  .section-tag {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    line-height: 1.2; letter-spacing: -0.02em;
+  }
+
+  /* ABOUT */
+  .about { background: var(--ink); color: var(--paper); }
+  .about .section-tag { color: var(--accent); }
+  .about .section-title { color: var(--paper); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .about-body { font-size: 1.05rem; color: rgba(247,245,240,0.75); line-height: 1.85; }
+  .about-body p + p { margin-top: 1.25rem; }
+  .about-body strong { color: var(--paper); font-weight: 500; }
+  .about-pills { display: flex; flex-direction: column; gap: 0; }
+  .about-pill {
+    padding: 1.25rem 0;
+    border-bottom: 0.5px solid rgba(247,245,240,0.12);
+    display: flex; align-items: flex-start; gap: 1rem;
+  }
+  .pill-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 500; flex-shrink: 0; margin-top: 2px;
+  }
+  .pill-title { font-weight: 500; font-size: 0.9rem; color: var(--paper); margin-bottom: 0.2rem; }
+  .pill-desc { font-size: 0.82rem; color: rgba(247,245,240,0.55); line-height: 1.5; }
+
+  /* WORK */
+  .work { background: var(--paper); }
+  .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 0.5px solid var(--line); }
+  .work-card {
+    padding: 2.25rem 2rem;
+    border-right: 0.5px solid var(--line);
+    border-bottom: 0.5px solid var(--line);
+    transition: background 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .work-card:hover { background: var(--paper-warm); }
+  .work-card:nth-child(3n) { border-right: none; }
+  .work-num {
+    font-family: 'DM Serif Display', serif; font-size: 3rem;
+    color: var(--accent-light); line-height: 1; margin-bottom: 1rem;
+    font-style: italic;
+  }
+  .work-title { font-weight: 500; font-size: 1rem; margin-bottom: 0.6rem; }
+  .work-desc { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6; }
+  .work-result {
+    margin-top: 1rem; font-size: 0.75rem; font-weight: 500;
+    color: var(--teal); letter-spacing: 0.04em;
+  }
+
+  /* WOW SECTION */
+  .wow { background: var(--teal-light); }
+  .wow-phases { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border: 0.5px solid rgba(26,107,90,0.2); }
+  .wow-phase {
+    padding: 1.75rem 1.25rem;
+    border-right: 0.5px solid rgba(26,107,90,0.2);
+    position: relative;
+  }
+  .wow-phase:last-child { border-right: none; }
+  .wow-phase-num {
+    font-family: 'DM Serif Display', serif; font-style: italic;
+    font-size: 1.8rem; color: var(--teal); opacity: 0.3; margin-bottom: 0.5rem;
+  }
+  .wow-phase-title { font-size: 0.78rem; font-weight: 500; color: var(--teal); margin-bottom: 0.5rem; line-height: 1.3; }
+  .wow-phase-desc { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.5; }
+  .wow-arrow {
+    position: absolute; right: -8px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    background: var(--teal); clip-path: polygon(0 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0 80%);
+    z-index: 1;
+  }
+  .wow-phase:last-child .wow-arrow { display: none; }
+
+  /* TOOLS */
+  .tools { background: var(--paper-warm); }
+  .tools-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .tool-tag {
+    padding: 0.5rem 1rem;
+    border: 0.5px solid var(--line);
+    font-size: 0.78rem; color: var(--ink-soft);
+    background: var(--paper);
+    transition: all 0.2s;
+  }
+  .tool-tag:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  /* CONTACT */
+  .contact { background: var(--ink); color: var(--paper); text-align: center; }
+  .contact .section-title { color: var(--paper); font-size: clamp(2rem, 4vw, 3.2rem); max-width: 600px; margin: 0 auto 2rem; }
+  .contact-sub { color: rgba(247,245,240,0.55); font-size: 1rem; margin-bottom: 2.5rem; }
+  .contact-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+  .contact-link {
+    padding: 0.75rem 2rem;
+    border: 1px solid rgba(247,245,240,0.2);
+    color: var(--paper); text-decoration: none;
+    font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .contact-link:hover { background: var(--accent); border-color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    border-top: 0.5px solid rgba(247,245,240,0.08);
+    padding: 1.5rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  footer p { font-size: 0.75rem; color: rgba(247,245,240,0.3); }
+
+  /* ANIMATIONS */
+  .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-left { border-right: none; border-bottom: 0.5px solid var(--line); padding: 4rem 1.5rem 3rem; }
+    .hero-right { padding: 3rem 1.5rem 4rem; }
+    .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .work-grid { grid-template-columns: 1fr; }
+    .work-card { border-right: none; }
+    .wow-phases { grid-template-columns: repeat(2, 1fr); }
+    .wow-phase { border-bottom: 0.5px solid rgba(26,107,90,0.2); }
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { gap: 1rem; }
+    section { padding: 4rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-name">Shailesh Bhardwaj</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#work">Work</a>
+    <a href="#wow">Framework</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="padding: 0;">
+  <div class="hero-left">
+    <div class="hero-tag">Senior Product Manager · Hyderabad, India · 16 Years Experience</div>
+    <h1 class="hero-name">Product<br/><em>System</em><br/>Architect</h1>
+    <p class="hero-desc">
+      I design teams, frameworks, processes and products as <strong>interconnected ecosystems</strong> — not isolated features. 16 years of turning complexity into clarity.
+    </p>
+    <div class="cta-row">
+      <a href="#work" class="btn-primary">See my work</a>
+      <a href="#contact" class="btn-secondary">Get in touch</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="stat-grid">
+      <div class="stat-item">
+        <div class="stat-num">16<span>yr</span></div>
+        <div class="stat-label">Industry experience across product & engineering</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">75<span>k+</span></div>
+        <div class="stat-label">Global practitioners on platforms I own</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">150<span>+</span></div>
+        <div class="stat-label">Countries served by platforms I own</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">22<span>k+</span></div>
+        <div class="stat-label">Clients scaled across 120+ countries — from 8K at start</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="section-header">
+    <div class="section-tag">About</div>
+    <h2 class="section-title">I explain things well.<br/>That is my superpower.</h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-body fade-up">
+      <p>I am a Senior Product Manager with 16 years of experience, currently leading product for a <strong>mission-critical enterprise platform</strong> used by tens of thousands of professionals across 150+ countries — in one of the most regulated, high-stakes domains in global professional services.</p>
+      <p>But beyond the product, I am deeply invested in <strong>how teams build</strong> — shifting organisations from feature factories to outcome-driven, discovery-led ways of working.</p>
+      <p>I think in systems. I build ecosystems. And I make complex things genuinely understandable — which is what people consistently tell me I do better than almost anything else.</p>
+    </div>
+    <div class="about-pills fade-up">
+      <div class="about-pill">
+        <div class="pill-icon">PS</div>
+        <div>
+          <div class="pill-title">Product System Architect</div>
+          <div class="pill-desc">Designs teams, frameworks, processes and products as connected ecosystems — not isolated deliverables</div>
+        </div>
+      </div>
+      <div class="about-pill">
+        <div class="pill-icon">WC</div>
+        <div>
+          <div class="pill-title">Product Mindset Coach & Facilitator</div>
+          <div class="pill-desc">Coached 100+ practitioners across 10+ teams. Designed and delivered 6 immersive transformation events impacting 240+ professionals. Built a Train-the-Trainer engine scaling capability to 1,800+ employees</div>
+        </div>
+      </div>
+      <div class="about-pill">
+        <div class="pill-icon">AI</div>
+        <div>
+          <div class="pill-title">AI Accelerator Builder</div>
+          <div class="pill-desc">Built three AI proofs of concept spanning product discovery, compliance review automation, and in-sprint test automation — delivering a 30% cycle reduction and 20% first-pass compliance uplift</div>
+        </div>
+      </div>
+      <div class="about-pill">
+        <div class="pill-icon">H2</div>
+        <div>
+          <div class="pill-title">Hack2Hire Creator</div>
+          <div class="pill-desc">Co-created hackathon-based hiring model. 100+ hires across Product, Engineering and Experience</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section class="work" id="work">
+  <div class="section-header">
+    <div class="section-tag">Key achievements</div>
+    <h2 class="section-title">Things I have built<br/>and the results they created</h2>
+  </div>
+  <div class="work-grid">
+    <div class="work-card fade-up">
+      <div class="work-num">01</div>
+      <div class="work-title">Platform scaling — 0 to global</div>
+      <div class="work-desc">Grew a global audit governance platform from 5,000 US users to 75,000+ practitioners across 150+ countries, and from 8,000 clients to 22,000+ across 120+ countries. Full 0→1 to 1→N journey.</div>
+      <div class="work-result">~95% adoption in US · 70%+ active usage globally</div>
+    </div>
+    <div class="work-card fade-up">
+      <div class="work-num">02</div>
+      <div class="work-title">Regulatory compliance — zero findings</div>
+      <div class="work-desc">Owned end-to-end regulatory filing workflow for a complex multi-stakeholder compliance process. Achieved 100% filing reconciliation, halved offline submissions, and maintained zero Sev 1 or Sev 2 inspection findings across all audit cycles.</div>
+      <div class="work-result">100% compliance · zero critical findings</div>
+    </div>
+    <div class="work-card fade-up">
+      <div class="work-num">03</div>
+      <div class="work-title">AI accelerators — three proofs of concept</div>
+      <div class="work-desc">Built three AI proofs of concept spanning product discovery acceleration, compliance document review automation, and in-sprint test automation using retrieval-augmented generation — each targeting a different bottleneck in the product delivery lifecycle.</div>
+      <div class="work-result">30% cycle reduction · 20% compliance uplift</div>
+    </div>
+    <div class="work-card fade-up">
+      <div class="work-num">04</div>
+      <div class="work-title">Engineering quality & release confidence</div>
+      <div class="work-desc">Drove regression automation from ~20% to ~60% coverage, cutting release validation cycle time by ~30%. Reduced peak-season support ticket volume ~40% YoY through guided workflows, validation mechanisms and proactive UX improvements.</div>
+      <div class="work-result">~30% faster releases · ~40% fewer support tickets</div>
+    </div>
+    <div class="work-card fade-up">
+      <div class="work-num">05</div>
+      <div class="work-title">Hack2Hire — hiring innovation</div>
+      <div class="work-desc">Co-created a hackathon-based work-sample hiring model evaluating candidates through real business problems rather than traditional interviews. Became a marquee organisational initiative recognised at leadership level.</div>
+      <div class="work-result">100+ hires · 9 PMs across 3 events · 90 participants</div>
+    </div>
+    <div class="work-card fade-up">
+      <div class="work-num">06</div>
+      <div class="work-title">Transformation at scale — 1,800 employees</div>
+      <div class="work-desc">Designed and operationalised an Innovation & Talent Hub to shift teams from traditional delivery to modern product ways of working. Built a Train-the-Trainer engine that scaled coaching capacity to 1,800+ employees beyond a limited expert pool.</div>
+      <div class="work-result">1,800+ employees reached · 100+ practitioners coached</div>
+    </div>
+  </div>
+</section>
+
+<!-- WOW -->
+<section class="wow" id="wow">
+  <div class="section-header">
+    <div class="section-tag">Product operating model</div>
+    <h2 class="section-title">From concept to cash —<br/>the full product lifecycle</h2>
+  </div>
+  <div class="wow-phases">
+    <div class="wow-phase">
+      <div class="wow-phase-num">01</div>
+      <div class="wow-phase-title">North Star & Chartering</div>
+      <div class="wow-phase-desc">Define the shared measurable future state before any solution is considered</div>
+      <div class="wow-arrow"></div>
+    </div>
+    <div class="wow-phase">
+      <div class="wow-phase-num">02</div>
+      <div class="wow-phase-title">Empathy & Journey Mapping</div>
+      <div class="wow-phase-desc">Real user interviews, pain point evidence, unmet needs</div>
+      <div class="wow-arrow"></div>
+    </div>
+    <div class="wow-phase">
+      <div class="wow-phase-num">03</div>
+      <div class="wow-phase-title">Opportunity Framing</div>
+      <div class="wow-phase-desc">Convert pain into opportunity statements, outcome-based roadmap</div>
+      <div class="wow-arrow"></div>
+    </div>
+    <div class="wow-phase">
+      <div class="wow-phase-num">04</div>
+      <div class="wow-phase-title">Skateboard & Steel Thread</div>
+      <div class="wow-phase-desc">Smallest releasable increment delivering real end-to-end value</div>
+      <div class="wow-arrow"></div>
+    </div>
+    <div class="wow-phase">
+      <div class="wow-phase-num">05</div>
+      <div class="wow-phase-title">Ship & Measure</div>
+      <div class="wow-phase-desc">Frequent production-ready increments with outcome instrumentation</div>
+      <div class="wow-arrow"></div>
+    </div>
+    <div class="wow-phase">
+      <div class="wow-phase-num">06</div>
+      <div class="wow-phase-title">Learn & Adapt</div>
+      <div class="wow-phase-desc">Improvement kata, updated roadmap, insights fed back to North Star</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools" id="tools">
+  <div class="section-header">
+    <div class="section-tag">Tools & technologies</div>
+    <h2 class="section-title">How I work</h2>
+  </div>
+  <div class="tools-grid">
+    <span class="tool-tag">Azure DevOps</span>
+    <span class="tool-tag">Figma</span>
+    <span class="tool-tag">Figma Make</span>
+    <span class="tool-tag">Mural</span>
+    <span class="tool-tag">GitHub Copilot</span>
+    <span class="tool-tag">Claude AI</span>
+    <span class="tool-tag">NotebookLM</span>
+    <span class="tool-tag">Cursor MCP</span>
+    <span class="tool-tag">Pendo</span>
+    <span class="tool-tag">Dovetail</span>
+    <span class="tool-tag">FullStory</span>
+    <span class="tool-tag">Tricentis Tosca</span>
+    <span class="tool-tag">XMind</span>
+    <span class="tool-tag">Product Telemetry & Monitoring</span>
+    <span class="tool-tag">Behavioural Analytics</span>
+    <span class="tool-tag">Opportunity to Steel Thread</span>
+    <span class="tool-tag">Improvement Kata</span>
+    <span class="tool-tag">Story Mapping</span>
+    <span class="tool-tag">Three-layer Hypothesis</span>
+    <span class="tool-tag">RAID Framework</span>
+    <span class="tool-tag">Empathy Mapping</span>
+    <span class="tool-tag">Journey Mapping</span>
+    <span class="tool-tag">North Star Framing</span>
+    <span class="tool-tag">RAG-based AI Agents</span>
+    <span class="tool-tag">Playwright Automation</span>
+    <span class="tool-tag">Vibe Coding</span>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="section-tag" style="color: var(--accent);">Get in touch</div>
+  <h2 class="section-title">Let's build something that matters</h2>
+  <p class="contact-sub">Open to senior product roles, transformation partnerships, and interesting conversations.</p>
+  <div class="contact-links">
+    <a href="https://linkedin.com/in/shaileshbhardwaj" class="contact-link" target="_blank">LinkedIn</a>
+    <a href="https://github.com/shailesh-builds" class="contact-link" target="_blank">GitHub</a>
+    <a href="mailto:shailesh.bhardwaj@hotmail.com" class="contact-link">Email</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Shailesh Bhardwaj. Built with intent.</p>
+  <p>Hyderabad, India</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
