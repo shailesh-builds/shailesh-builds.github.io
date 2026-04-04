@@ -254,6 +254,7 @@
     transition: background 0.2s;
   }
   .teardown-card:hover { background: rgba(247,245,240,0.04); }
+  .teardown-card[href]:hover .teardown-title { color: var(--accent); }
   .teardown-tag {
     font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--accent);
@@ -570,15 +571,15 @@
     <div class="teardown-card">
       <div class="teardown-tag">Framework</div>
       <div class="teardown-title">How I do a teardown</div>
-      <div class="teardown-desc">Every teardown follows the same structure — user, problem, solution, monetisation, moat, and what I would change. Consistent lens, honest analysis.</div>
+      <div class="teardown-desc">Every teardown follows the same structure — user, problem, business model, moat, PM problem framing, and what I would change. Consistent lens, honest analysis, research-backed throughout.</div>
     </div>
-    <div class="teardown-card">
-      <div class="teardown-tag">Coming soon</div>
-      <div class="teardown-title">First teardown dropping soon</div>
-      <div class="teardown-desc">Picking a product that millions use but few truly understand. The interesting questions are never about the features — they are about the decisions behind them.</div>
-    </div>
+    <a href="uber-teardown.html" class="teardown-card" style="text-decoration: none; color: inherit; cursor: pointer;">
+      <div class="teardown-tag" style="color: var(--accent);">Live · India context</div>
+      <div class="teardown-title">Uber India — "cancel karo, cash dedo"</div>
+      <div class="teardown-desc">A full teardown of Uber's India marketplace and a PM problem framing of drivers asking riders to cancel and pay via UPI or cash — research-backed, strategy canvas structure.</div>
+    </a>
     <div class="teardown-coming">
-      <p>Teardowns published here as they are completed — one product, one honest analysis at a time</p>
+      <p>More teardowns coming — one product, one honest analysis at a time</p>
     </div>
   </div>
 </section>
