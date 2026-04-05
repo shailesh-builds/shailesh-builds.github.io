@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outcome Navigator — Shailesh Bhardwaj</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0b;
+    --surface: #141412;
+    --surface2: #1a1a17;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #e8e6de;
+    --text-muted: #6b6960;
+    --text-dim: #3d3d38;
+    --accent: #c8622a;
+    --accent-light: #e07040;
+    --teal: #1a6b5a;
+    --teal-light: #22a08a;
+    --amber: #d4960a;
+    --purple: #7c6fd4;
+    --green: #4a9060;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,13,11,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .nav-back {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--text); }
+  .nav-back::before { content: '← '; }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 7rem 2rem 5rem;
+  }
+
+  .eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent-light);
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin-bottom: 3rem;
+    line-height: 1.7;
+  }
+
+  .input-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .input-area:focus-within { border-color: var(--border-strong); }
+
+  .input-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    resize: none;
+    min-height: 80px;
+  }
+
+  textarea::placeholder { color: var(--text-dim); }
+
+  .example-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .pill {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .pill:hover { border-color: var(--border-strong); color: var(--text); background: var(--surface2); }
+
+  .run-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .run-btn:hover { background: var(--accent-light); }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .steps-area { margin-top: 2.5rem; }
+
+  .step-card {
+    border-left: 2px solid var(--border);
+    padding: 1rem 0 1rem 1.5rem;
+    margin-bottom: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeUp 0.35s ease forwards;
+    position: relative;
+  }
+  .step-card + .step-card { border-top: none; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-card::before {
+    content: '';
+    position: absolute;
+    left: -5px; top: 1.1rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+
+  .step-card.plan::before   { border-color: var(--purple); }
+  .step-card.think::before  { border-color: var(--teal-light); }
+  .step-card.act::before    { border-color: var(--accent); }
+  .step-card.observe::before { border-color: var(--amber); }
+  .step-card.done::before   { border-color: var(--green); background: var(--green); }
+
+  .step-card.plan   { border-left-color: var(--purple); }
+  .step-card.think  { border-left-color: var(--teal-light); }
+  .step-card.act    { border-left-color: var(--accent); }
+  .step-card.observe { border-left-color: var(--amber); }
+  .step-card.done   { border-left-color: var(--green); }
+
+  .step-type {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .step-card.plan   .step-type { color: var(--purple); }
+  .step-card.think  .step-type { color: var(--teal-light); }
+  .step-card.act    .step-type { color: var(--accent-light); }
+  .step-card.observe .step-type { color: var(--amber); }
+  .step-card.done   .step-type { color: var(--green); }
+
+  .step-label {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .step-content {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .final-card {
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.4s ease 0.1s forwards;
+  }
+
+  .final-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1rem;
+  }
+
+  .final-content {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .reset-btn {
+    display: inline-block;
+    margin-top: 2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .reset-btn:hover { color: var(--text); }
+  .reset-btn::before { content: '↺  '; }
+
+  .err-card {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(226,75,74,0.3);
+    border-radius: 4px;
+    background: rgba(226,75,74,0.05);
+    font-size: 0.875rem;
+    color: #e87070;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .how-it-works {
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .how-item { }
+
+  .how-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2rem;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .how-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 0.375rem;
+  }
+
+  .how-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  footer a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem 1.25rem; }
+    main { padding: 5.5rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Shailesh Bhardwaj</a>
+  <a href="index.html" class="nav-back">Portfolio</a>
+</nav>
+
+<main>
+  <p class="eyebrow">Outcome Navigator</p>
+  <h1>Your product challenge,<br><em>reasoned through</em> step by step.</h1>
+  <p class="subtitle">Describe any product problem — thin slicing, defining outcomes, writing opportunity statements, navigating long release cycles — and the agent will reason through it using modern product thinking.</p>
+
+  <div id="input-section">
+    <div class="input-area">
+      <label class="input-label" for="goal-input">Your challenge</label>
+      <textarea id="goal-input" rows="3" placeholder="e.g. How do I start thin slicing within existing PI features without disrupting commitments?"></textarea>
+      <div class="example-pills">
+        <button class="pill" onclick="setExample(this)">How do I define a measurable outcome when leadership sets the roadmap?</button>
+        <button class="pill" onclick="setExample(this)">What is the difference between a thin slice and a full feature?</button>
+        <button class="pill" onclick="setExample(this)">How do I start involving real users when stakeholders are the only interface?</button>
+        <button class="pill" onclick="setExample(this)">How do I add success measures to work that is already scoped?</button>
+      </div>
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="runAgent()">
+      Run agent
+    </button>
+  </div>
+
+  <div class="steps-area" id="steps-area"></div>
+  <div id="final-area"></div>
+
+  <div class="how-it-works">
+    <p class="eyebrow">How it works</p>
+    <div class="how-grid">
+      <div class="how-item">
+        <div class="how-num">01</div>
+        <div class="how-title">Plan</div>
+        <div class="how-desc">Breaks down what needs to be figured out before answering.</div>
+      </div>
+      <div class="how-item">
+        <div class="how-num">02</div>
+        <div class="how-title">Think</div>
+        <div class="how-desc">Reasons through the challenge using modern product thinking and outcome-based principles.</div>
+      </div>
+      <div class="how-item">
+        <div class="how-num">03</div>
+        <div class="how-title">Act</div>
+        <div class="how-desc">Identifies specific frameworks, techniques, and artefacts that apply.</div>
+      </div>
+      <div class="how-item">
+        <div class="how-num">04</div>
+        <div class="how-title">Observe</div>
+        <div class="how-desc">Notes constraints, risks, and environment-specific factors.</div>
+      </div>
+      <div class="how-item">
+        <div class="how-num">05</div>
+        <div class="how-title">Synthesise</div>
+        <div class="how-desc">Delivers a clear, practical answer you can act on today.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Built by <a href="index.html">Shailesh Bhardwaj</a> &nbsp;·&nbsp; <a href="index.html">shailesh-builds.github.io</a>
+</footer>
+
+<script>
+const SYSTEM = `You are a WOW (Ways of Working) product coaching agent. WOW is a product operating model that shifts teams from feature factories to outcome-driven, discovery-led teams.
+
+Key WOW concepts you know deeply:
+- North Star: measurable future state the team works toward
+- Opportunity Statement: "For [user] at [step], [pain] causes [impact]. If we improve [jtbd], we expect [measurable outcome]."
+- Three-layer Hypothesis: outcome / problem / solution — each independently testable
+- Steel Thread: minimum viable end-to-end path through the full system
+- Skateboard: smallest thing that solves the core problem (not a stripped-down car — a different vehicle)
+- Thin slicing: vertical slices that are end-to-end, mile-wide inch-deep
+- Improvement Kata: current state → target condition → experiments → reassess
+- Definition of Success: explicit measurable description of what good looks like, defined before solution
+- Feature factory: the anti-pattern — roadmap of features, not opportunities
+
+CRITICAL: Your entire response must be a single valid JSON object. No prose before it. No prose after it. No markdown fences. No explanation. Raw JSON only, starting with { and ending with }.
+
+Use exactly this shape:
+{"step_type":"plan","step_label":"short label max 6 words","step_content":"2-4 sentences of concrete reasoning","is_final":false,"final_answer":""}
+
+step_type must be one of: plan, think, act, observe, done
+When step_type is "done": set is_final to true, write the full practical answer in final_answer (3-6 sentences, concrete and actionable).
+
+Work through steps in this order:
+1. plan — break down the challenge into what needs to be figured out
+2. think — reason through the core using WOW principles
+3. act — name specific WOW tools, techniques, artefacts that apply
+4. observe — surface constraints, risks, dynamics to navigate
+5. done — synthesise into a clear practical answer the person can act on today`;
+
+const TYPE_LABELS = { plan:'Planning', think:'Thinking', act:'Acting', observe:'Observing', done:'Synthesising' };
+let history = [];
+let running = false;
+
+function setExample(btn) {
+  document.getElementById('goal-input').value = btn.textContent.trim();
+}
+
+function extractJSON(raw) {
+  const s = raw.indexOf('{');
+  const e = raw.lastIndexOf('}');
+  if (s === -1 || e === -1) throw new Error('No JSON found in response');
+  return JSON.parse(raw.slice(s, e + 1));
+}
+
+function addStepCard(step) {
+  const area = document.getElementById('steps-area');
+  const div = document.createElement('div');
+  div.className = `step-card ${step.step_type}`;
+  div.innerHTML = `
+    <div class="step-type">${TYPE_LABELS[step.step_type] || step.step_type}</div>
+    <div class="step-label">${step.step_label}</div>
+    <div class="step-content">${step.step_content}</div>
+  `;
+  area.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showFinal(answer) {
+  const area = document.getElementById('final-area');
+  area.innerHTML = `
+    <div class="final-card">
+      <div class="final-eyebrow">Coaching answer</div>
+      <div class="final-content">${answer}</div>
+    </div>
+    <button class="reset-btn" onclick="reset()">Ask another question</button>
+  `;
+  area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showError(msg) {
+  const area = document.getElementById('steps-area');
+  const div = document.createElement('div');
+  div.className = 'err-card';
+  div.textContent = `Something went wrong: ${msg}. Check your internet connection and try again.`;
+  area.appendChild(div);
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('run-btn').innerHTML = 'Try again';
+  running = false;
+}
+
+function setBtn(loading) {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spinner"></span> Agent thinking...`
+    : 'Run agent';
+}
+
+function reset() {
+  document.getElementById('steps-area').innerHTML = '';
+  document.getElementById('final-area').innerHTML = '';
+  document.getElementById('goal-input').value = '';
+  history = [];
+  running = false;
+  setBtn(false);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function callClaude(messages) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: SYSTEM,
+      messages
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  const raw = data.content?.find(b => b.type === 'text')?.text || '';
+  return extractJSON(raw);
+}
+
+async function runAgent() {
+  if (running) return;
+  const goal = document.getElementById('goal-input').value.trim();
+  if (!goal) {
+    document.getElementById('goal-input').focus();
+    return;
+  }
+
+  running = true;
+  document.getElementById('steps-area').innerHTML = '';
+  document.getElementById('final-area').innerHTML = '';
+  setBtn(true);
+
+  history = [{
+    role: 'user',
+    content: `Here is my product challenge: ${goal}\n\nRespond with your first step as a JSON object only. No other text.`
+  }];
+
+  for (let i = 0; i < 7; i++) {
+    let step;
+    try {
+      step = await callClaude(history);
+    } catch(e) {
+      showError(e.message);
+      return;
+    }
+
+    addStepCard(step);
+    history.push({ role: 'assistant', content: JSON.stringify(step) });
+
+    if (step.is_final) {
+      showFinal(step.final_answer);
+      setBtn(false);
+      running = false;
+      return;
+    }
+
+    history.push({
+      role: 'user',
+      content: 'Continue to the next step. Respond with JSON only — no prose, no markdown, no fences.'
+    });
+
+    await new Promise(r => setTimeout(r, 350));
+  }
+
+  setBtn(false);
+  running = false;
+}
+
+document.getElementById('goal-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runAgent();
+});
+</script>
+</body>
+</html>
