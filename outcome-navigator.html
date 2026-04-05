@@ -397,6 +397,98 @@
     nav { padding: 1rem 1.25rem; }
     main { padding: 5.5rem 1.25rem 4rem; }
   }
+
+  #key-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .key-box {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2.5rem;
+  }
+  .key-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .key-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .key-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+  .key-sub a { color: var(--accent-light); text-decoration: none; }
+  .key-sub a:hover { text-decoration: underline; }
+  .key-input-wrap { position: relative; margin-bottom: 1rem; }
+  #api-key-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.875rem 3.5rem 0.875rem 1rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.04em;
+  }
+  #api-key-input:focus { border-color: var(--border-strong); }
+  #api-key-input::placeholder { color: var(--text-dim); letter-spacing: 0; }
+  #toggle-key {
+    position: absolute;
+    right: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.06em;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  #toggle-key:hover { color: var(--text); }
+  .key-note {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .key-note::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+  #key-error { font-size: 0.8rem; color: #e87070; margin-bottom: 1rem; display: none; }
 </style>
 </head>
 <body>
@@ -406,7 +498,26 @@
   <a href="index.html" class="nav-back">Portfolio</a>
 </nav>
 
-<main>
+<!-- API KEY GATE -->
+<div id="key-gate">
+  <div class="key-box">
+    <div class="key-eyebrow">Outcome Navigator</div>
+    <div class="key-title">Enter your Anthropic API key to begin</div>
+    <p class="key-sub">
+      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      The key is stored in memory only — it is never saved, logged, or sent anywhere except directly to the Anthropic API.
+    </p>
+    <div class="key-input-wrap">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" />
+      <button id="toggle-key" onclick="toggleKeyVisibility()">show</button>
+    </div>
+    <div id="key-error">That does not look like a valid API key. It should start with sk-ant-</div>
+    <p class="key-note">Key stays in memory for this session only — never persisted</p>
+    <button class="run-btn" onclick="submitKey()">Continue</button>
+  </div>
+</div>
+
+<main style="display:none;">
   <p class="eyebrow">Outcome Navigator</p>
   <h1>Your product challenge,<br><em>reasoned through</em> step by step.</h1>
   <p class="subtitle">Describe any product problem — thin slicing, defining outcomes, writing opportunity statements, navigating long release cycles — and the agent will reason through it using modern product thinking.</p>
@@ -496,6 +607,32 @@ Work through steps in this order:
 4. observe — surface constraints, risks, dynamics to navigate
 5. done — synthesise into a clear practical answer the person can act on today`;
 
+let API_KEY = '';
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('api-key-input');
+  const btn = document.getElementById('toggle-key');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'hide'; }
+  else { inp.type = 'password'; btn.textContent = 'show'; }
+}
+
+function submitKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const errEl = document.getElementById('key-error');
+  if (!key.startsWith('sk-ant-') && !key.startsWith('sk-')) {
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  API_KEY = key;
+  document.getElementById('key-gate').style.display = 'none';
+  document.querySelector('main').style.display = 'block';
+}
+
+document.getElementById('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitKey();
+});
+
 const TYPE_LABELS = { plan:'Planning', think:'Thinking', act:'Acting', observe:'Observing', done:'Synthesising' };
 let history = [];
 let running = false;
@@ -568,7 +705,7 @@ function reset() {
 async function callClaude(messages) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
